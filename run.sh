@@ -114,11 +114,7 @@ build_report() {
 
     echo "Wrote report to $json_result_file"
 
-    if [[ $status == fail ]]; then
-        return 1
-    else
-        return 0
-    fi
+    [[ $status != fail ]]
 }
 
 main() {

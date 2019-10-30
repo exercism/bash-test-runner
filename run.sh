@@ -43,8 +43,9 @@ to_json_value() {
 
 
 run_tests() {
-    local solution_dir="$1"
-    local output_file="$2"
+    local slug="$1"
+    local solution_dir="$2"
+    local output_file="$3"
 
     echo "Running tests."
 
@@ -52,7 +53,7 @@ run_tests() {
 
     echo "Test output:"
 
-    "$BATS" --tap "$slug"_test.sh 2>&1 | tee "$output_file" || true
+    "$BATS" --tap "${slug//-/_}"_test.sh 2>&1 | tee "$output_file" || true
 
     echo "Test run ended. Output saved in $output_file"
 
@@ -112,6 +113,12 @@ build_report() {
     print_report "$status" "${results[@]}" > "$json_result_file"
 
     echo "Wrote report to $json_result_file"
+
+    if [[ $status == fail ]]; then
+        return 1
+    else
+        return 0
+    fi
 }
 
 main() {
@@ -131,7 +138,7 @@ main() {
     local output_file="$output_dir/results.out"
     local json_result_file="$output_dir/results.json"
 
-    run_tests "$solution_dir" "$output_file"
+    run_tests "$slug" "$solution_dir" "$output_file"
     build_report "$output_file" "$json_result_file"
 }
 

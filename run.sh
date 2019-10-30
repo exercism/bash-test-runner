@@ -53,7 +53,7 @@ run_tests() {
 
     echo "Test output:"
 
-    "$BATS" --tap "${slug//-/_}"_test.sh 2>&1 | tee "$output_file" || true
+    "$BATS" --tap "${slug//-/_}_test.sh" 2>&1 | tee "$output_file" || true
 
     echo "Test run ended. Output saved in $output_file"
 

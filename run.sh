@@ -18,6 +18,11 @@ set -o nounset
 BATS="$PWD/bats/bin/bats"
 
 to_json_value() {
+    # Turn strings into JSON values.
+    #
+    # Empty string will become "null", any other value will be encoded as a
+    # string.
+
     local input
     local result
 
@@ -41,8 +46,9 @@ to_json_value() {
     printf '"%s"' "$result"
 }
 
-
 run_tests() {
+    # Run tests and pipe output to results.out file.
+
     local slug="$1"
     local solution_dir="$2"
     local output_file="$3"
@@ -61,6 +67,8 @@ run_tests() {
 }
 
 build_report() {
+    # Parse results.out and write result to results.json
+
     local output_file="$1"
     local json_result_file="$2"
 
@@ -139,6 +147,8 @@ main() {
 }
 
 error() {
+    # Store entire output to results.json file, in case of an error.
+
     local output_file="$1"
     local json_result_file="$2"
 
@@ -153,6 +163,9 @@ error() {
 }
 
 print_report() {
+    # Print complete result JSON, given the overall status and a list of
+    # already JSON-encoded test results.
+
     local status="$1"
     shift
 
@@ -167,6 +180,8 @@ print_report() {
 }
 
 print_failed_test() {
+    # Print result of failed test as JSON.
+
     local test_name="$1"
     local message="$2"
 
@@ -176,6 +191,8 @@ print_failed_test() {
 }
 
 print_passed_test() {
+    # Print result of passed test as JSON.
+
     local test_name="$1"
 
     printf '{ "name": %s, "status": "pass" }\n' \

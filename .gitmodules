@@ -1,0 +1,3 @@
+[submodule "bats"]
+	path = bats
+	url = git@github.com:bats-core/bats-core.git

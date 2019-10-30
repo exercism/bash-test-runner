@@ -73,7 +73,7 @@ build_report() {
         local last_test="${BASH_REMATCH[2]}"
         local test_count=$(( last_test - first_test + 1 ))
     else
-        error "$output_file" "$json_result_file"; return
+        error "$output_file" "$json_result_file"; return 1
     fi
 
     echo "Tried to run $test_count tests according to TAP plan."
@@ -86,7 +86,7 @@ build_report() {
             local failed="${BASH_REMATCH[1]}"
             local test_name="${BASH_REMATCH[2]}"
         else
-            error "$output_file" "$json_result_file"; return
+            error "$output_file" "$json_result_file"; return 1
         fi
 
         if [[ -z $failed ]]; then

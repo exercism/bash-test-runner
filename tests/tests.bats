@@ -201,3 +201,33 @@ not ok 3 say three
 (in test file last_fails_test.sh, line 18)
   \`[ \"\$output\" == \"three\" ]' failed" ]]
 }
+
+@test "missing script" {
+    run "$RUN_SCRIPT" missing-script "$DATA_DIR"/missing_script "$output_dir"
+
+    [[ "$status" -eq 1 ]]
+
+    [[ "$(jq -r .status < "$output_dir/results.json")" == fail ]]
+    [[ "$(jq .message < "$output_dir/results.json")" == null ]]
+    [[ "$(jq '.tests | length' < "$output_dir/results.json")" == 1 ]]
+
+    [[ "$(jq -r '.tests[0].name' < "$output_dir/results.json")" \
+        == "say hello" ]]
+    [[ "$(jq -r '.tests[0].status' < "$output_dir/results.json")" == fail ]]
+    [[ "$(jq '.tests[0].message' < "$output_dir/results.json")" \
+        =~ \$status.*-eq.*0.*failed\ with\ status\ 127 ]]
+}
+
+@test "missing test" {
+    run "$RUN_SCRIPT" missing-test "$DATA_DIR"/missing_test "$output_dir"
+
+    [[ "$status" -eq 1 ]]
+
+    [[ "$(jq -r '.status' < "$output_dir/results.json")" == error ]]
+
+    [[ "$(jq -r '.message' < "$output_dir/results.json")" =~ \
+bats:\ .*${PWD}/${DATA_DIR}/missing_test/missing_test_test.sh\ does\ not\ exist\
+    ]]
+
+    [[ "$(jq '.tests | length' < "$output_dir/results.json")" == 0 ]]
+}

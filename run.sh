@@ -44,17 +44,14 @@ to_json_value() {
     # Empty string will become "null", any other value will be encoded as a
     # string.
 
-    local input
-    local result
-
-    IFS= input="$(< /dev/stdin)"
+    local input="$1"
 
     if [[ -z $input ]]; then
         printf "null"
         return
     fi
 
-    result="${input//\\/\\\\}"
+    local result="${input//\\/\\\\}"
 
     result="${result//$'\b'/\\b}"
     result="${result//$'\f'/\\f}"
@@ -156,7 +153,7 @@ error() {
     echo "This probably means there was an error running the tests."
 
     printf '{ "status": "error", "message": %s }\n' \
-        "$(to_json_value < "$output_file")" \
+        "$(to_json_value "$(< "$output_file")")" \
         > "$json_result_file"
 
     echo "Wrote error report to $json_result_file"
@@ -186,8 +183,8 @@ print_failed_test() {
     local message="$2"
 
     printf '{ "name": %s, "status": "fail", "message": %s}\n' \
-        "$(to_json_value <<< "$test_name")" \
-        "$(to_json_value <<< "$message")"
+        "$(to_json_value "$test_name")" \
+        "$(to_json_value "$message")"
 }
 
 print_passed_test() {
@@ -196,7 +193,7 @@ print_passed_test() {
     local test_name="$1"
 
     printf '{ "name": %s, "status": "pass" }\n' \
-        "$(to_json_value <<< "$test_name")"
+        "$(to_json_value "$test_name")"
 }
 
 main "$@"

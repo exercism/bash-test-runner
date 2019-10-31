@@ -17,6 +17,27 @@ set -o nounset
 
 BATS="$PWD/bats/bin/bats"
 
+main() {
+    echo "Running exercise tests for Bash"
+
+    local slug="$1"
+    echo "Test slug: ${slug}"
+
+    local solution_dir
+    solution_dir="$(realpath "$2")"
+    echo "Solution directory: ${solution_dir}"
+
+    local output_dir
+    output_dir="$(realpath "$3")"
+    echo "Output directory: ${output_dir}"
+
+    local output_file="$output_dir/results.out"
+    local json_result_file="$output_dir/results.json"
+
+    run_tests "$slug" "$solution_dir" "$output_file"
+    build_report "$output_file" "$json_result_file"
+}
+
 to_json_value() {
     # Turn strings into JSON values.
     #
@@ -123,27 +144,6 @@ build_report() {
     echo "Wrote report to $json_result_file"
 
     [[ $status != fail ]]
-}
-
-main() {
-    echo "Running exercise tests for Bash"
-
-    local slug="$1"
-    echo "Test slug: ${slug}"
-
-    local solution_dir
-    solution_dir="$(realpath "$2")"
-    echo "Solution directory: ${solution_dir}"
-
-    local output_dir
-    output_dir="$(realpath "$3")"
-    echo "Output directory: ${output_dir}"
-
-    local output_file="$output_dir/results.out"
-    local json_result_file="$output_dir/results.json"
-
-    run_tests "$slug" "$solution_dir" "$output_file"
-    build_report "$output_file" "$json_result_file"
 }
 
 error() {

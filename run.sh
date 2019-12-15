@@ -140,7 +140,7 @@ build_report() {
 
     echo "Wrote report to $json_result_file"
 
-    [[ $status != fail ]]
+    return 0
 }
 
 error() {

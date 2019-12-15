@@ -76,7 +76,7 @@ ok 3 say three\
         "$DATA_DIR"/first_fails \
         "$output_dir"
 
-    [[ "$status" -eq 1 ]]
+    [[ "$status" -eq 0 ]]
 
     actual_tap_output="$(< "$output_dir/results.out")"
     expected_tap_output="\
@@ -120,7 +120,7 @@ ok 3 say three\
         "$DATA_DIR"/middle_fails \
         "$output_dir"
 
-    [[ "$status" -eq 1 ]]
+    [[ "$status" -eq 0 ]]
 
     actual_tap_output="$(< "$output_dir/results.out")"
     expected_tap_output="\
@@ -164,7 +164,7 @@ ok 3 say three\
         "$DATA_DIR"/last_fails \
         "$output_dir"
 
-    [[ "$status" -eq 1 ]]
+    [[ "$status" -eq 0 ]]
 
     actual_tap_output="$(< "$output_dir/results.out")"
     expected_tap_output="\
@@ -205,7 +205,7 @@ not ok 3 say three
 @test "missing script" {
     run "$RUN_SCRIPT" missing-script "$DATA_DIR"/missing_script "$output_dir"
 
-    [[ "$status" -eq 1 ]]
+    [[ "$status" -eq 0 ]]
 
     [[ "$(jq -r .status < "$output_dir/results.json")" == fail ]]
     [[ "$(jq .message < "$output_dir/results.json")" == null ]]

@@ -1,1 +1,1 @@
-{ "version": 1, "status": "pass", "tests": [{ "name": "say hello", "status": "pass" }]}
+{ "version": 2, "status": "pass", "tests": [{ "name": "say hello", "status": "pass" }]}

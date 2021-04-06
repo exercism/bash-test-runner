@@ -15,8 +15,6 @@ set -o nounset
 # First runs the tests with bats and saves the TAP output,
 # then parses that TAP file to produce the JSON file.
 
-BATS="$PWD/bats/bin/bats"
-
 main() {
     echo "Running exercise tests for Bash"
 
@@ -77,7 +75,7 @@ run_tests() {
 
     echo "Test output:"
 
-    "$BATS" --tap "${slug//-/_}_test.sh" 2>&1 | tee "$output_file" || true
+    bats --tap "${slug//-/_}_test.sh" 2>&1 | tee "$output_file" || true
 
     echo "Test run ended. Output saved in $output_file"
 

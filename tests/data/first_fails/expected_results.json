@@ -1,0 +1,1 @@
+{ "status": "fail", "tests": [{ "name": "say one", "status": "fail", "message": "(in test file first_fails_test.sh, line 6)\n  `[ \"$output\" == \"one\" ]' failed\n"},{ "name": "say two", "status": "pass" },{ "name": "say three", "status": "pass" }]}

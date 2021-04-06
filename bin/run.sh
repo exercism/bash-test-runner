@@ -150,7 +150,7 @@ error() {
     echo "Failed to parse output."
     echo "This probably means there was an error running the tests."
 
-    printf '{ "version": 1, "status": "error", "message": %s }\n' \
+    printf '{ "version": 2, "status": "error", "message": %s }\n' \
         "$(to_json_value "$(< "$output_file")")" \
         > "$json_result_file"
 
@@ -167,7 +167,7 @@ print_report() {
     local test_results=("$@")
 
     local result
-    result="$(printf '{ "version": 1, "status": "%s", "tests": [' "$status")"
+    result="$(printf '{ "version": 2, "status": "%s", "tests": [' "$status")"
     IFS=, result+="${test_results[*]}"
     result+="]}"
 

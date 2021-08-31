@@ -8,4 +8,5 @@ RUN apt-get update && \
 
 COPY . /opt/test-runner
 WORKDIR /opt/test-runner
+ENV BATS_RUN_SKIPPED=true
 ENTRYPOINT ["/opt/test-runner/bin/run.sh"]

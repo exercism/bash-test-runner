@@ -1,2 +1,6 @@
 tests/**/results.json
 tests/**/results.out
+
+# vim
+.*.sw?
+.sw?

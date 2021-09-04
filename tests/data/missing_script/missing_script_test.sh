@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+load bats-extra
 
 @test "say hello" {
   run bash one_passing.sh
-  [ "$status" -eq 0 ]
-  [ "$output" == "Hello, World!" ]
+  assert_success
+  assert_output "Hello, World!"
 }

@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
+load bats-extra
 
 @test "say one" {
   run bash middle_fails.sh one
-  [ "$status" -eq 0 ]
-  [ "$output" == "one" ]
+  assert_output "one"
+  assert_success
 }
 
 @test "say two" {
   run bash middle_fails.sh two
-  [ "$status" -eq 0 ]
-  [ "$output" == "two" ]
+  assert_output "two"
+  assert_success
 }
 
 @test "say three" {
   run bash middle_fails.sh three
-  [ "$status" -eq 0 ]
-  [ "$output" == "three" ]
+  assert_output "three"
+  assert_success
 }

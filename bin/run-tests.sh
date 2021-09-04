@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 # Synopsis:
 # Test the test runner by running it against a predefined set of solutions 

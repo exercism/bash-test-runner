@@ -66,6 +66,7 @@ run_tests() {
     # Run tests and pipe output to results.out file.
 
     local slug="$1"
+    local test_file=${slug//-/_}_test.sh
     local solution_dir="$2"
     local output_file="$3"
 
@@ -73,9 +74,11 @@ run_tests() {
 
     cd "$solution_dir"
 
+    sed -i 's/load bats-extra.bash/load bats-extra/' "$test_file"
+
     echo "Test output:"
 
-    bats --tap "${slug//-/_}_test.sh" 2>&1 | tee "$output_file" || true
+    bats --tap "$test_file" 2>&1 | tee "$output_file" || true
 
     echo "Test run ended. Output saved in $output_file"
 

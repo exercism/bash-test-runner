@@ -74,7 +74,7 @@ run_tests() {
 
     cd "$solution_dir"
 
-    sed -i 's/load bats-extra.bash/load bats-extra/' "$test_file"
+    sed -i 's/load bats-extra.bash/load bats-extra/' "$test_file" || true
 
     echo "Test output:"
 

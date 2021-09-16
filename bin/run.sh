@@ -66,7 +66,6 @@ run_tests() {
     # Run tests and pipe output to results.out file.
 
     local slug="$1"
-    local test_file=${slug//-/_}.bats
     local solution_dir="$2"
     local output_file="$3"
 
@@ -74,8 +73,9 @@ run_tests() {
 
     cd "$solution_dir"
 
+    local test_file="${slug//-/_}.bats"
     # test scripts may be (old) xxxx_test.sh
-    [[ -f "$test_file" ]] || test_file=${slug//-/_}_test.sh
+    [[ -f "$test_file" ]] || test_file="${slug//-/_}_test.sh"
 
     sed -i 's/load bats-extra.bash/load bats-extra/' "$test_file" || true
 

@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -o errexit
-set -o nounset
+#set -o errexit
+#set -o nounset
 
 # Arguments:
 # $1: exercise slug
@@ -31,6 +31,8 @@ main() {
 
     local output_file="$output_dir/results.out"
     local json_result_file="$output_dir/results.json"
+
+    local -A test_bodies    # populated in get_test_bodies
 
     run_tests "$slug" "$solution_dir" "$output_file"
     build_report "$output_file" "$json_result_file"
@@ -83,9 +85,46 @@ run_tests() {
 
     bats --tap "$test_file" 2>&1 | tee "$output_file" || true
 
+    get_test_bodies "$test_file"
+
     echo "Test run ended. Output saved in $output_file"
 
     cd ~-
+}
+
+get_test_bodies() {
+    local test_file=$1
+    local name state=out body=() line
+    test_bodies=()
+
+    local start_test_re="^@test ['\"](.+)['\"] {[[:blank:]]*$"
+    local end_test_re="^}[[:blank:]]*$"
+
+    while IFS= read -r line; do
+        case $state in
+            out)
+                if [[ $line =~ $start_test_re ]]; then
+                    name=${BASH_REMATCH[1]}
+                    body=()
+                    state=in
+                fi
+                ;;
+            in)
+                if [[ $line =~ $end_test_re ]]; then
+                    test_bodies["$name"]=$(join $'\n' "${body[@]}")
+                    state=out
+                else
+                    body+=("$line")
+                fi
+                ;;
+        esac
+    done < "$test_file"
+}
+
+join() {
+    local IFS="$1"
+    shift
+    echo "$*"
 }
 
 build_report() {
@@ -110,6 +149,7 @@ build_report() {
 
     local results
     local status="pass"
+    local test_body
 
     for (( i = 1; i < ${#output[@]}; i++ )); do
         if [[ ${output[$i]} =~ ^(not )?ok\ [0-9]+\ (.*)$ ]]; then
@@ -119,8 +159,12 @@ build_report() {
             error "$output_file" "$json_result_file"; return 1
         fi
 
+        [[ -v "test_bodies[$test_name]" ]] &&
+            test_body=${test_bodies[$test_name]} ||
+            test_body=""
+
         if [[ -z $failed ]]; then
-            results+=("$(print_passed_test "$test_name")")
+            results+=("$(print_passed_test "$test_name" "$test_body")")
         else
             status="fail"
 
@@ -134,7 +178,7 @@ build_report() {
                 fi
             done
 
-            results+=("$(print_failed_test "$test_name" "$error_message")")
+            results+=("$(print_failed_test "$test_name" "$error_message" "$test_body")")
 
             (( i = j - 1 ))
         fi
@@ -185,19 +229,23 @@ print_failed_test() {
 
     local test_name="$1"
     local message="$2"
+    local test_body="$3"
 
-    printf '{ "name": %s, "status": "fail", "message": %s}\n' \
+    printf '\n  { "name": %s, "status": "fail", "message": %s, "test_code": %s}' \
         "$(to_json_value "$test_name")" \
-        "$(to_json_value "$message")"
+        "$(to_json_value "$message")" \
+        "$(to_json_value "$test_body")"
 }
 
 print_passed_test() {
     # Print result of passed test as JSON.
 
     local test_name="$1"
+    local test_body="$2"
 
-    printf '{ "name": %s, "status": "pass" }\n' \
-        "$(to_json_value "$test_name")"
+    printf '\n  { "name": %s, "status": "pass", "test_code": %s}' \
+        "$(to_json_value "$test_name")" \
+        "$(to_json_value "$test_body")"
 }
 
 main "$@"

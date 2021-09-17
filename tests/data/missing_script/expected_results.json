@@ -1,1 +1,1 @@
-{ "version": 2, "status": "fail", "tests": [{ "name": "say hello", "status": "fail", "message": "(in test file missing_script_test.sh, line 5)\n  `[ \"$status\" -eq 0 ]' failed with status 127\n"}]}
+{ "version": 2, "status": "fail", "tests": [{ "name": "say hello", "status": "fail", "message": "(in test file missing_script.bats, line 5)\n  `[ \"$status\" -eq 0 ]' failed with status 127\n"}]}

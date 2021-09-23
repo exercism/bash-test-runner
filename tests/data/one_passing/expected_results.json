@@ -1,1 +1,2 @@
-{ "version": 2, "status": "pass", "tests": [{ "name": "say hello", "status": "pass" }]}
+{ "version": 2, "status": "pass", "tests": [
+  { "name": "say hello", "status": "pass", "test_code": "  run bash one_passing.sh\n  [ \"$status\" -eq 0 ]\n  [ \"$output\" == \"Hello, World!\" ]"}]}

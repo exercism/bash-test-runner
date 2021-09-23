@@ -79,7 +79,7 @@ run_tests() {
     # test scripts may be (old) xxxx_test.sh
     [[ -f "$test_file" ]] || test_file="${slug//-/_}_test.sh"
 
-    sed -i 's/load bats-extra.bash/load bats-extra/' "$test_file" || true
+    perl -i -pe 's/(load bats-extra)\.bash/$1/' "$test_file"
 
     echo "Test output:"
 
@@ -89,16 +89,18 @@ run_tests() {
 
     echo "Test run ended. Output saved in $output_file"
 
-    cd ~-
+    cd -
 }
 
 get_test_bodies() {
     local test_file=$1
-    local name state=out body=() line
+    local name line
+    local state="out"
+    local body=() 
     test_bodies=()
 
-    local start_test_re="^@test ['\"](.+)['\"] {[[:blank:]]*$"
-    local end_test_re="^}[[:blank:]]*$"
+    local start_test_re='^@test ['\''"](.+)['\''"] \{[[:blank:]]*$'
+    local end_test_re='^\}[[:blank:]]*$'
 
     while IFS= read -r line; do
         case $state in
@@ -106,13 +108,13 @@ get_test_bodies() {
                 if [[ $line =~ $start_test_re ]]; then
                     name=${BASH_REMATCH[1]}
                     body=()
-                    state=in
+                    state="in"
                 fi
                 ;;
             in)
                 if [[ $line =~ $end_test_re ]]; then
                     test_bodies["$name"]=$(join $'\n' "${body[@]}")
-                    state=out
+                    state="out"
                 else
                     body+=("$line")
                 fi
@@ -124,7 +126,7 @@ get_test_bodies() {
 join() {
     local IFS="$1"
     shift
-    echo "$*"
+    printf '%s' "$*"
 }
 
 build_report() {
@@ -231,10 +233,10 @@ print_failed_test() {
     local message="$2"
     local test_body="$3"
 
-    printf '\n  { "name": %s, "status": "fail", "message": %s, "test_code": %s}' \
+    printf '\n  { "name": %s, "status": "fail", "test_code": %s, "message": %s}' \
         "$(to_json_value "$test_name")" \
-        "$(to_json_value "$message")" \
-        "$(to_json_value "$test_body")"
+        "$(to_json_value "$test_body")" \
+        "$(to_json_value "$message")"
 }
 
 print_passed_test() {

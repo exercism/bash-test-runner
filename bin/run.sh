@@ -91,7 +91,7 @@ run_tests() {
 
 get_test_bodies() {
     local test_file=$1
-    local name line
+    local name line indent
     local state="out"
     local body=() 
     test_bodies=()
@@ -113,7 +113,10 @@ get_test_bodies() {
                     test_bodies["$name"]=$(printf '%s\n' "${body[@]}")
                     state="out"
                 else
-                    body+=("$line")
+                    # We want to unindent the body: find the indentation of the first line.
+                    ((${#body[@]} == 0)) && indent=${line%%[^[:blank:]]*}
+
+                    body+=( "${line#"$indent"}" )
                 fi
                 ;;
         esac

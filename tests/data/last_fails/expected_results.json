@@ -1,4 +1,4 @@
 { "version": 2, "status": "fail", "tests": [
-  { "name": "say one", "status": "pass", "test_code": "  run bash last_fails.sh one\n  [ \"$status\" -eq 0 ]\n  [ \"$output\" == \"one\" ]"},
-  { "name": "say two", "status": "pass", "test_code": "  run bash last_fails.sh two\n  [ \"$status\" -eq 0 ]\n  [ \"$output\" == \"two\" ]"},
-  { "name": "say three", "status": "fail", "test_code": "  run bash last_fails.sh three\n  [ \"$status\" -eq 0 ]\n  [ \"$output\" == \"three\" ]", "message": "(in test file last_fails_test.sh, line 18)\n  `[ \"$output\" == \"three\" ]' failed\n"}]}
+  { "name": "say one", "status": "pass", "test_code": "run bash last_fails.sh one\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"one\" ]"},
+  { "name": "say two", "status": "pass", "test_code": "run bash last_fails.sh two\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"two\" ]"},
+  { "name": "say three", "status": "fail", "test_code": "run bash last_fails.sh three\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"three\" ]", "message": "(in test file last_fails_test.sh, line 18)\n  `[ \"$output\" == \"three\" ]' failed\n"}]}

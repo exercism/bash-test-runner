@@ -11,4 +11,4 @@
 # Example:
 # ./bin/run-tests.sh
 
-bats tests
+BATS_RUN_SKIPPED=true bats tests

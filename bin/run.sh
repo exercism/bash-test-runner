@@ -35,32 +35,6 @@ main() {
     build_report "$output_file" "$json_result_file"
 }
 
-to_json_value() {
-    # Turn strings into JSON values.
-    #
-    # Empty string will become "null", any other value will be encoded as a
-    # string.
-
-    local input="$1"
-
-    if [[ -z $input ]]; then
-        printf "null"
-        return
-    fi
-
-    local result="${input//\\/\\\\}"
-
-    result="${result//$'\b'/\\b}"
-    result="${result//$'\f'/\\f}"
-    result="${result//$'\n'/\\n}"
-    result="${result//$'\r'/\\r}"
-    result="${result//$'\t'/\\t}"
-
-    result="${result//\"/\\\"}"
-
-    printf '"%s"' "$result"
-}
-
 run_tests() {
     # Run tests and pipe output to results.out file.
 
@@ -112,6 +86,12 @@ get_test_bodies() {
                 if [[ $line =~ $end_test_re ]]; then
                     test_bodies["$name"]=$(printf '%s\n' "${body[@]}")
                     state="out"
+                elif [[ $line == *BATS_RUN_SKIPPED*skip* ]]; then
+                    # skip the skips
+                    continue
+                elif ((${#body[@]} == 0)) && [[ $line == *([[:blank:]]) ]]; then
+                    # ignore blank lines at the top of the test body
+                    continue
                 else
                     # We want to unindent the body: find the indentation of the first line.
                     ((${#body[@]} == 0)) && indent=${line%%[^[:blank:]]*}
@@ -199,6 +179,32 @@ error() {
         > "$json_result_file"
 
     echo "Wrote error report to $json_result_file"
+}
+
+to_json_value() {
+    # Turn strings into JSON values.
+    #
+    # Empty string will become "null", any other value will be encoded as a
+    # string.
+
+    local input="$1"
+
+    if [[ -z $input ]]; then
+        printf "null"
+        return
+    fi
+
+    local result="${input//\\/\\\\}"
+
+    result="${result//$'\b'/\\b}"
+    result="${result//$'\f'/\\f}"
+    result="${result//$'\n'/\\n}"
+    result="${result//$'\r'/\\r}"
+    result="${result//$'\t'/\\t}"
+
+    result="${result//\"/\\\"}"
+
+    printf '"%s"' "$result"
 }
 
 print_report() {

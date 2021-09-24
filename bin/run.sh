@@ -1,7 +1,4 @@
-#!/bin/bash
-
-set -o errexit
-set -o nounset
+#!/usr/bin/env bash
 
 # Arguments:
 # $1: exercise slug
@@ -31,6 +28,8 @@ main() {
 
     local output_file="$output_dir/results.out"
     local json_result_file="$output_dir/results.json"
+
+    local -A test_bodies    # populated in get_test_bodies
 
     run_tests "$slug" "$solution_dir" "$output_file"
     build_report "$output_file" "$json_result_file"
@@ -77,15 +76,51 @@ run_tests() {
     # test scripts may be (old) xxxx_test.sh
     [[ -f "$test_file" ]] || test_file="${slug//-/_}_test.sh"
 
-    sed -i 's/load bats-extra.bash/load bats-extra/' "$test_file" || true
+    perl -i -pe 's/(load bats-extra)\.bash/$1/' "$test_file"
 
     echo "Test output:"
 
     bats --tap "$test_file" 2>&1 | tee "$output_file" || true
 
+    get_test_bodies "$test_file"
+
     echo "Test run ended. Output saved in $output_file"
 
-    cd ~-
+    cd -
+}
+
+get_test_bodies() {
+    local test_file=$1
+    local name line indent
+    local state="out"
+    local body=() 
+    test_bodies=()
+
+    local start_test_re='^@test ['\''"](.+)['\''"] \{[[:blank:]]*$'
+    local end_test_re='^\}[[:blank:]]*$'
+
+    while IFS= read -r line; do
+        case "$state" in
+            out)
+                if [[ $line =~ $start_test_re ]]; then
+                    name=${BASH_REMATCH[1]}
+                    body=()
+                    state="in"
+                fi
+                ;;
+            in)
+                if [[ $line =~ $end_test_re ]]; then
+                    test_bodies["$name"]=$(printf '%s\n' "${body[@]}")
+                    state="out"
+                else
+                    # We want to unindent the body: find the indentation of the first line.
+                    ((${#body[@]} == 0)) && indent=${line%%[^[:blank:]]*}
+
+                    body+=( "${line#"$indent"}" )
+                fi
+                ;;
+        esac
+    done < "$test_file"
 }
 
 build_report() {
@@ -110,6 +145,7 @@ build_report() {
 
     local results
     local status="pass"
+    local test_body
 
     for (( i = 1; i < ${#output[@]}; i++ )); do
         if [[ ${output[$i]} =~ ^(not )?ok\ [0-9]+\ (.*)$ ]]; then
@@ -119,8 +155,10 @@ build_report() {
             error "$output_file" "$json_result_file"; return 1
         fi
 
+        test_body=${test_bodies[$test_name]:-}
+
         if [[ -z $failed ]]; then
-            results+=("$(print_passed_test "$test_name")")
+            results+=("$(print_passed_test "$test_name" "$test_body")")
         else
             status="fail"
 
@@ -134,7 +172,7 @@ build_report() {
                 fi
             done
 
-            results+=("$(print_failed_test "$test_name" "$error_message")")
+            results+=("$(print_failed_test "$test_name" "$error_message" "$test_body")")
 
             (( i = j - 1 ))
         fi
@@ -185,9 +223,11 @@ print_failed_test() {
 
     local test_name="$1"
     local message="$2"
+    local test_body="$3"
 
-    printf '{ "name": %s, "status": "fail", "message": %s}\n' \
+    printf '\n  { "name": %s, "status": "fail", "test_code": %s, "message": %s}' \
         "$(to_json_value "$test_name")" \
+        "$(to_json_value "$test_body")" \
         "$(to_json_value "$message")"
 }
 
@@ -195,9 +235,11 @@ print_passed_test() {
     # Print result of passed test as JSON.
 
     local test_name="$1"
+    local test_body="$2"
 
-    printf '{ "name": %s, "status": "pass" }\n' \
-        "$(to_json_value "$test_name")"
+    printf '\n  { "name": %s, "status": "pass", "test_code": %s}' \
+        "$(to_json_value "$test_name")" \
+        "$(to_json_value "$test_body")"
 }
 
 main "$@"

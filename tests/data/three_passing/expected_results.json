@@ -1,1 +1,4 @@
-{ "version": 2, "status": "pass", "tests": [{ "name": "say one", "status": "pass" },{ "name": "say two", "status": "pass" },{ "name": "say three", "status": "pass" }]}
+{ "version": 2, "status": "pass", "tests": [
+  { "name": "say one", "status": "pass", "test_code": "run bash three_passing.sh one\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"one\" ]"},
+  { "name": "say two", "status": "pass", "test_code": "run bash three_passing.sh two\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"two\" ]"},
+  { "name": "say three", "status": "pass", "test_code": "run bash three_passing.sh three\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"three\" ]"}]}

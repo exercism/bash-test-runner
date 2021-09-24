@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-#set -o errexit
-#set -o nounset
-
 # Arguments:
 # $1: exercise slug
 # $2: path to solution directory
@@ -103,7 +100,7 @@ get_test_bodies() {
     local end_test_re='^\}[[:blank:]]*$'
 
     while IFS= read -r line; do
-        case $state in
+        case "$state" in
             out)
                 if [[ $line =~ $start_test_re ]]; then
                     name=${BASH_REMATCH[1]}
@@ -113,7 +110,7 @@ get_test_bodies() {
                 ;;
             in)
                 if [[ $line =~ $end_test_re ]]; then
-                    test_bodies["$name"]=$(join $'\n' "${body[@]}")
+                    test_bodies["$name"]=$(printf '%s\n' "${body[@]}")
                     state="out"
                 else
                     body+=("$line")
@@ -121,12 +118,6 @@ get_test_bodies() {
                 ;;
         esac
     done < "$test_file"
-}
-
-join() {
-    local IFS="$1"
-    shift
-    printf '%s' "$*"
 }
 
 build_report() {
@@ -161,9 +152,7 @@ build_report() {
             error "$output_file" "$json_result_file"; return 1
         fi
 
-        [[ -v "test_bodies[$test_name]" ]] &&
-            test_body=${test_bodies[$test_name]} ||
-            test_body=""
+        test_body=${test_bodies[$test_name]:-}
 
         if [[ -z $failed ]]; then
             results+=("$(print_passed_test "$test_name" "$test_body")")

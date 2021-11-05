@@ -46,9 +46,14 @@ run_tests() {
 
     cd "$solution_dir"
 
-    local test_file="${slug//-/_}.bats"
-    # test scripts may be (old) xxxx_test.sh
-    [[ -f "$test_file" ]] || test_file="${slug//-/_}_test.sh"
+    local test_file
+    if [[ -f .exercism/config.json ]]; then
+        test_file=$(jq -r '.files.test[0]' .exercism/config.json)
+    else
+        test_file="${slug//-/_}.bats"
+        # test scripts may be (old) xxxx_test.sh
+        [[ -f "$test_file" ]] || test_file="${slug//-/_}_test.sh"
+    fi
 
     perl -i -pe 's/(load bats-extra)\.bash/$1/' "$test_file"
 

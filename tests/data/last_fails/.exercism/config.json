@@ -1,0 +1,8 @@
+{
+    "files": {
+        "solution": ["last_fails.sh"],
+        "test": ["last_fails_test.sh"],
+        "example": [".meta/example.sh"]
+    }
+}
+

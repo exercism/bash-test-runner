@@ -2,7 +2,7 @@
 #
 # "skip" lines should not be included in the test body
 
-load bats-extra.bash
+load bats-extra
 
 @test "say one" {
   #[[ $BATS_RUN_SKIPPED == "true" ]] || skip

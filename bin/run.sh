@@ -47,8 +47,8 @@ run_tests() {
     cd "$solution_dir"
 
     local test_file
-    if [[ -f .exercism/config.json ]]; then
-        test_file=$(jq -r '.files.test[0]' .exercism/config.json)
+    if [[ -f .meta/config.json ]]; then
+        test_file=$(jq -r '.files.test[0]' .meta/config.json)
     else
         test_file="${slug//-/_}.bats"
         # test scripts may be (old) xxxx_test.sh
@@ -218,15 +218,12 @@ print_report() {
 
     local status="$1"
     shift
+    local IFS=,
+    local test_results="$*"
 
-    local test_results=("$@")
-
-    local result
-    result="$(printf '{ "version": 2, "status": "%s", "tests": [' "$status")"
-    IFS=, result+="${test_results[*]}"
-    result+="]}"
-
-    printf "%s" "$result"
+    printf '{ "version": 2, "status": "%s", "tests": [%s]}' \
+        "$status" \
+        "$test_results"
 }
 
 print_failed_test() {

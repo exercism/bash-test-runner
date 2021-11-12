@@ -2,13 +2,14 @@ FROM ubuntu:20.04
 
 # Specifically use bats 1.5.0
 # Remove git when we're done with it.
+# Test runner needs jq.
 # Other commands to add to environment, might be used by students
 #   - bc
 #   - awk
 #   - sed
 
 RUN apt-get update && \
-    apt-get install -y git bc gawk sed jq && \
+    apt-get install -y git jq bc gawk sed && \
     git clone https://github.com/bats-core/bats-core && \
     cd bats-core && \
     git checkout v1.5.0 && \

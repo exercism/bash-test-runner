@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2164,SC2103
 
 # Arguments:
 # $1: exercise slug
@@ -11,6 +12,10 @@
 #
 # First runs the tests with bats and saves the TAP output,
 # then parses that TAP file to produce the JSON file.
+
+# the version of the test-runner interface:
+# https://github.com/exercism/docs/blob/main/building/tooling/test-runners/interface.md
+INTERFACE_VERSION=2
 
 main() {
     echo "Running exercise tests for Bash"
@@ -72,7 +77,7 @@ get_test_bodies() {
     local test_file=$1
     local name line indent
     local state="out"
-    local body=() 
+    local body=()
     test_bodies=()
 
     local start_test_re='^@test ['\''"](.+)['\''"] \{[[:blank:]]*$'
@@ -101,7 +106,7 @@ get_test_bodies() {
                     # We want to unindent the body: find the indentation of the first line.
                     ((${#body[@]} == 0)) && indent=${line%%[^[:blank:]]*}
 
-                    body+=( "${line#"$indent"}" )
+                    body+=("${line#"$indent"}")
                 fi
                 ;;
         esac
@@ -121,9 +126,10 @@ build_report() {
     if [[ ${output[0]} =~ ^([0-9]+)\.\.([0-9]+)$ ]]; then
         local first_test="${BASH_REMATCH[1]}"
         local last_test="${BASH_REMATCH[2]}"
-        local test_count=$(( last_test - first_test + 1 ))
+        local test_count=$((last_test - first_test + 1))
     else
-        error "$output_file" "$json_result_file"; return 1
+        error "$output_file" "$json_result_file"
+        return 1
     fi
 
     echo "Tried to run $test_count tests according to TAP plan."
@@ -132,12 +138,13 @@ build_report() {
     local status="pass"
     local test_body
 
-    for (( i = 1; i < ${#output[@]}; i++ )); do
+    for ((i = 1; i < ${#output[@]}; i++)); do
         if [[ ${output[$i]} =~ ^(not )?ok\ [0-9]+\ (.*)$ ]]; then
             local failed="${BASH_REMATCH[1]}"
             local test_name="${BASH_REMATCH[2]}"
         else
-            error "$output_file" "$json_result_file"; return 1
+            error "$output_file" "$json_result_file"
+            return 1
         fi
 
         test_body=${test_bodies[$test_name]:-}
@@ -149,7 +156,7 @@ build_report() {
 
             local error_message=""
 
-            for (( j = i + 1; j < ${#output[@]}; j++ )); do
+            for ((j = i + 1; j < ${#output[@]}; j++)); do
                 if [[ ${output[$j]} =~ ^#\ (.*)$ ]]; then
                     error_message+="${BASH_REMATCH[1]}"$'\n'
                 else
@@ -159,7 +166,7 @@ build_report() {
 
             results+=("$(print_failed_test "$test_name" "$error_message" "$test_body")")
 
-            (( i = j - 1 ))
+            ((i = j - 1))
         fi
     done
 
@@ -179,75 +186,55 @@ error() {
     echo "Failed to parse output."
     echo "This probably means there was an error running the tests."
 
-    printf '{ "version": 2, "status": "error", "message": %s }\n' \
-        "$(to_json_value "$(< "$output_file")")" \
-        > "$json_result_file"
+    local opts=(
+        --null-input
+        --argjson version "$INTERFACE_VERSION"
+        --arg status "error"
+        --arg message "$(< "$output_file")"
+    )
+    jq "${opts[@]}" '{version: $version, status: $status, message: $message}'
 
     echo "Wrote error report to $json_result_file"
-}
-
-to_json_value() {
-    # Turn strings into JSON values.
-    #
-    # Empty string will become "null", any other value will be encoded as a
-    # string.
-
-    local input="$1"
-
-    if [[ -z $input ]]; then
-        printf "null"
-        return
-    fi
-
-    local result="${input//\\/\\\\}"
-
-    result="${result//$'\b'/\\b}"
-    result="${result//$'\f'/\\f}"
-    result="${result//$'\n'/\\n}"
-    result="${result//$'\r'/\\r}"
-    result="${result//$'\t'/\\t}"
-
-    result="${result//\"/\\\"}"
-
-    printf '"%s"' "$result"
 }
 
 print_report() {
     # Print complete result JSON, given the overall status and a list of
     # already JSON-encoded test results.
-
-    local status="$1"
+    local status=$1
     shift
-    local IFS=,
-    local test_results="$*"
-
-    printf '{ "version": 2, "status": "%s", "tests": [%s]}' \
-        "$status" \
-        "$test_results"
+    local tests=("$@")
+    local opts=(
+        --null-input
+        --argjson version "$INTERFACE_VERSION"
+        --arg status "$status"
+        --jsonargs
+    )
+    jq  "${opts[@]}" \
+        '{version: $version, status: $status, tests: $ARGS.positional}' \
+        "${tests[@]}"
 }
 
 print_failed_test() {
     # Print result of failed test as JSON.
-
-    local test_name="$1"
-    local message="$2"
-    local test_body="$3"
-
-    printf '\n  { "name": %s, "status": "fail", "test_code": %s, "message": %s}' \
-        "$(to_json_value "$test_name")" \
-        "$(to_json_value "$test_body")" \
-        "$(to_json_value "$message")"
+    local opts=(
+        --null-input
+        --arg name "$1"
+        --arg message "$2"
+        --arg code "$3"
+        --arg status "fail"
+    )
+    jq "${opts[@]}" '{name: $name, status: $status, test_code: $code, message: $message}'
 }
 
 print_passed_test() {
     # Print result of passed test as JSON.
-
-    local test_name="$1"
-    local test_body="$2"
-
-    printf '\n  { "name": %s, "status": "pass", "test_code": %s}' \
-        "$(to_json_value "$test_name")" \
-        "$(to_json_value "$test_body")"
+    local opts=(
+        --null-input
+        --arg name "$1"
+        --arg code "$2"
+        --arg status "pass"
+    )
+    jq "${opts[@]}" '{name: $name, status: $status, test_code: $code}'
 }
 
 main "$@"

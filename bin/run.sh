@@ -14,7 +14,7 @@ jq #!/usr/bin/env bash
 # then parses that TAP file to produce the JSON file.
 
 # the version of the test-runner interface:
-# https://github.com/exercism/docs/blob/main/building/tooling/test-runners/interface.md
+# https://github.com/exercism/docs/blob/50bcff91e8871f08b9a69b76ccbd45e5a90493dd/building/tooling/test-runners/interface.md
 INTERFACE_VERSION=2
 
 main() {

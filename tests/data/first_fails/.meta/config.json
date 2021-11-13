@@ -1,0 +1,8 @@
+{
+    "files": {
+        "solution": ["first_fails.sh"],
+        "test": ["this_is_the_test_script.bats"],
+        "example": [".meta/example.sh"]
+    }
+}
+

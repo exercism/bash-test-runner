@@ -1,4 +1,22 @@
-{ "version": 2, "status": "fail", "tests": [
-  { "name": "say one", "status": "pass", "test_code": "run bash middle_fails.sh one\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"one\" ]"},
-  { "name": "say two", "status": "fail", "test_code": "run bash middle_fails.sh two\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"two\" ]", "message": "(in test file middle_fails.bats, line 18)\n  `[ \"$output\" == \"two\" ]' failed\n"},
-  { "name": "say three", "status": "pass", "test_code": "run bash middle_fails.sh three\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"three\" ]"}]}
+{
+  "version": 2,
+  "status": "fail",
+  "tests": [
+    {
+      "name": "say one",
+      "status": "pass",
+      "test_code": "run bash middle_fails.sh one\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"one\" ]"
+    },
+    {
+      "name": "say two",
+      "status": "fail",
+      "test_code": "run bash middle_fails.sh two\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"two\" ]",
+      "message": "(in test file middle_fails.bats, line 18)\n  `[ \"$output\" == \"two\" ]' failed\n"
+    },
+    {
+      "name": "say three",
+      "status": "pass",
+      "test_code": "run bash middle_fails.sh three\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"three\" ]"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+    "files": {
+        "solution": ["middle.sh"],
+        "test": ["middle_fails.bats"],
+        "example": [".meta/example.sh"]
+    }
+}
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+jq #!/usr/bin/env bash
 # shellcheck disable=SC2164,SC2103
 
 # Arguments:
@@ -186,13 +186,11 @@ error() {
     echo "Failed to parse output."
     echo "This probably means there was an error running the tests."
 
-    local opts=(
-        --null-input
-        --argjson version "$INTERFACE_VERSION"
-        --arg status "error"
-        --arg message "$(< "$output_file")"
-    )
-    jq "${opts[@]}" '{version: $version, status: $status, message: $message}'
+    jq  --null-input \
+        --argjson version "$INTERFACE_VERSION" \
+        --arg status "error" \
+        --arg message "$(< "$output_file")" \
+        '{version: $version, status: $status, message: $message}'
 
     echo "Wrote error report to $json_result_file"
 }
@@ -203,38 +201,31 @@ print_report() {
     local status=$1
     shift
     local tests=("$@")
-    local opts=(
-        --null-input
-        --argjson version "$INTERFACE_VERSION"
-        --arg status "$status"
-        --jsonargs
-    )
-    jq  "${opts[@]}" \
+    jq  --null-input \
+        --argjson version "$INTERFACE_VERSION" \
+        --arg status "$status" \
+        --jsonargs \
         '{version: $version, status: $status, tests: $ARGS.positional}' \
         "${tests[@]}"
 }
 
 print_failed_test() {
     # Print result of failed test as JSON.
-    local opts=(
-        --null-input
-        --arg name "$1"
-        --arg message "$2"
-        --arg code "$3"
-        --arg status "fail"
-    )
-    jq "${opts[@]}" '{name: $name, status: $status, test_code: $code, message: $message}'
+    jq  --null-input \
+        --arg name "$1" \
+        --arg message "$2" \
+        --arg code "$3" \
+        --arg status "fail" \
+        '{name: $name, status: $status, test_code: $code, message: $message}'
 }
 
 print_passed_test() {
     # Print result of passed test as JSON.
-    local opts=(
-        --null-input
-        --arg name "$1"
-        --arg code "$2"
-        --arg status "pass"
-    )
-    jq "${opts[@]}" '{name: $name, status: $status, test_code: $code}'
+    jq  --null-input \
+        --arg name "$1" \
+        --arg code "$2" \
+        --arg status "pass" \
+        '{name: $name, status: $status, test_code: $code}'
 }
 
 main "$@"

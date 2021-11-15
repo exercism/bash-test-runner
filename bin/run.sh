@@ -1,4 +1,4 @@
-jq #!/usr/bin/env bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2164,SC2103
 
 # Arguments:

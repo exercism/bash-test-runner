@@ -1,6 +1,10 @@
 {
   "version": 2,
   "status": "fail",
+  "test-environment": {
+    "bash": "5.0.17(1)-release",
+    "bats": "Bats 1.5.0"
+  },
   "tests": [
     {
       "name": "say one",

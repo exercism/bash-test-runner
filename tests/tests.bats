@@ -24,7 +24,7 @@ actual_matches_expected() {
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
     [[ "$status" -eq 0 ]]
-    actual_matches_expected "$TEST_DIR"/{,expected_}results.json
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "three passing tests" {
@@ -33,7 +33,7 @@ actual_matches_expected() {
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
     [[ "$status" -eq 0 ]]
-    actual_matches_expected "$TEST_DIR"/{,expected_}results.json
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "first test fails" {
@@ -42,7 +42,7 @@ actual_matches_expected() {
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
     [[ "$status" -eq 0 ]]
-    actual_matches_expected "$TEST_DIR"/{,expected_}results.json
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "middle test fails" {
@@ -51,7 +51,7 @@ actual_matches_expected() {
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
     [[ "$status" -eq 0 ]]
-    actual_matches_expected "$TEST_DIR"/{,expected_}results.json
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "last test fails" {
@@ -60,7 +60,7 @@ actual_matches_expected() {
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
     [[ "$status" -eq 0 ]]
-    actual_matches_expected "$TEST_DIR"/{,expected_}results.json
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "missing script" {
@@ -69,7 +69,7 @@ actual_matches_expected() {
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
     [[ "$status" -eq 0 ]]
-    actual_matches_expected "$TEST_DIR"/{,expected_}results.json
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "missing test" {

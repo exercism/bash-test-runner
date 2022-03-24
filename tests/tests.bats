@@ -3,16 +3,28 @@
 RUN_SCRIPT='./bin/run.sh'
 DATA_DIR='tests/data'
 
+actual_matches_expected() {
+    local actual=$1 expected=$2
+
+    # Look at parts of the results instead of just comparing the file contents:
+    # when we upgrade the base image of the test container and the tool
+    # versions change, we won't need to go back and "fix" the expected result
+    # files.
+
+    [[ "$(jq .version "$actual")" == "$(jq .version "$expected")" ]] &&
+    [[ "$(jq .status "$actual")" == "$(jq .status "$expected")" ]] &&
+    [[ "$(jq .tests "$actual")" == "$(jq .tests "$expected")" ]] &&
+    [[ -n "$(jq '."test-environment".bash' "$actual")" ]] &&
+    [[ -n "$(jq '."test-environment".bats' "$actual")" ]]
+}
+
 @test "one passing test" {
     TEST="one_passing"
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    RESULTS=$(cat "$TEST_DIR/results.json")
-    EXPECTED_RESULTS=$(cat "$TEST_DIR/expected_results.json")
-
     [[ "$status" -eq 0 ]]
-    [[ "$RESULTS" == "$EXPECTED_RESULTS" ]]
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "three passing tests" {
@@ -20,11 +32,8 @@ DATA_DIR='tests/data'
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    RESULTS=$(cat "$TEST_DIR/results.json")
-    EXPECTED_RESULTS=$(cat "$TEST_DIR/expected_results.json")
-
     [[ "$status" -eq 0 ]]
-    [[ "$RESULTS" == "$EXPECTED_RESULTS" ]]
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "first test fails" {
@@ -32,11 +41,8 @@ DATA_DIR='tests/data'
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    RESULTS=$(cat "$TEST_DIR/results.json")
-    EXPECTED_RESULTS=$(cat "$TEST_DIR/expected_results.json")
-
     [[ "$status" -eq 0 ]]
-    [[ "$RESULTS" == "$EXPECTED_RESULTS" ]]
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "middle test fails" {
@@ -44,11 +50,8 @@ DATA_DIR='tests/data'
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    RESULTS=$(cat "$TEST_DIR/results.json")
-    EXPECTED_RESULTS=$(cat "$TEST_DIR/expected_results.json")
-
     [[ "$status" -eq 0 ]]
-    [[ "$RESULTS" == "$EXPECTED_RESULTS" ]]
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "last test fails" {
@@ -56,11 +59,8 @@ DATA_DIR='tests/data'
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    RESULTS=$(cat "$TEST_DIR/results.json")
-    EXPECTED_RESULTS=$(cat "$TEST_DIR/expected_results.json")
-
     [[ "$status" -eq 0 ]]
-    [[ "$RESULTS" == "$EXPECTED_RESULTS" ]]
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "missing script" {
@@ -68,11 +68,8 @@ DATA_DIR='tests/data'
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    RESULTS=$(cat "$TEST_DIR/results.json")
-    EXPECTED_RESULTS=$(cat "$TEST_DIR/expected_results.json")
-
     [[ "$status" -eq 0 ]]
-    [[ "$RESULTS" == "$EXPECTED_RESULTS" ]]
+    actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 
 @test "missing test" {

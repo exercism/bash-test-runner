@@ -203,10 +203,24 @@ print_report() {
     local tests=("$@")
     jq  --null-input \
         --argjson version "$INTERFACE_VERSION" \
+        --argjson tools "$(tool_versions)" \
         --arg status "$status" \
         --jsonargs \
-        '{version: $version, status: $status, tests: $ARGS.positional}' \
+        '{
+            version: $version,
+            status: $status,
+            "test-environment": $tools,
+            tests: $ARGS.positional
+        }' \
         "${tests[@]}"
+}
+
+tool_versions() {
+    # print versions of tools in the test environment
+    jq  --null-input \
+        --arg bash "$BASH_VERSION" \
+        --arg bats "$(bats --version)" \
+        '$ARGS.named'
 }
 
 print_failed_test() {

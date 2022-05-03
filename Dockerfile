@@ -1,5 +1,6 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
+# Ubuntu 22.04 ships with bash version "5.1.16(1)-release"
 # Specifically use bats 1.5.0
 # Remove git when we're done with it.
 # Test runner needs jq.

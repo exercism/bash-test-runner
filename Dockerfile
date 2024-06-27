@@ -1,6 +1,7 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
-# Ubuntu 22.04 ships with bash version "5.1.16(1)-release"
+# Ubuntu 24.04 ships with bash version 5.2
+# https://hub.docker.com/layers/library/ubuntu/24.04/images/sha256-3963c438d67a34318a3672faa6debd1dfff48e5d52de54305988b932c61514ca?context=explore
 # Specifically use bats 1.5.0
 # Remove git when we're done with it.
 # Test runner needs jq.

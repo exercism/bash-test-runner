@@ -18,6 +18,15 @@
 INTERFACE_VERSION=2
 
 main() {
+    if (($# != 3)) || [[ $1 == '-h' ]]; then
+        echo "usage: $0 <exercise_slug> <solution_directory> <output_directory>"
+        echo ""
+        echo "Typically, solution_directory == output_directory"
+        echo "example:"
+        echo "\$ $0 one_passing ./tests/data/one_passing{,}"
+        exit
+    fi
+
     echo "Running exercise tests for Bash"
 
     local slug="$1"
@@ -190,7 +199,8 @@ error() {
         --argjson version "$INTERFACE_VERSION" \
         --arg status "error" \
         --arg message "$(< "$output_file")" \
-        '{version: $version, status: $status, message: $message}'
+        '{version: $version, status: $status, message: $message}' \
+    > "$json_result_file"
 
     echo "Wrote error report to $json_result_file"
 }

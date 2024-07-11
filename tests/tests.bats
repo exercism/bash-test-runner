@@ -68,7 +68,7 @@ actual_matches_expected() {
     TEST_DIR="$DATA_DIR/$TEST"
     run "$RUN_SCRIPT" "$TEST" "$TEST_DIR" "$TEST_DIR"
 
-    [[ "$status" -eq 0 ]]
+    [[ "$status" -ne 0 ]]
     actual_matches_expected "$TEST_DIR/results.json" "$TEST_DIR/expected_results.json"
 }
 

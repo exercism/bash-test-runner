@@ -199,7 +199,8 @@ error() {
         --argjson version "$INTERFACE_VERSION" \
         --arg status "error" \
         --arg message "$(< "$output_file")" \
-        '{version: $version, status: $status, message: $message}'
+        '{version: $version, status: $status, message: $message}' \
+    > "$json_result_file"
 
     echo "Wrote error report to $json_result_file"
 }

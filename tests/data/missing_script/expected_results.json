@@ -1,16 +1,5 @@
 {
   "version": 2,
-  "status": "fail",
-  "test-environment": {
-    "bash": "5.2.21(1)-release",
-    "bats": "Bats 1.5.0"
-  },
-  "tests": [
-    {
-      "name": "say hello",
-      "status": "fail",
-      "test_code": "run bash one_passing.sh\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"Hello, World!\" ]",
-      "message": "(in test file missing_script.bats, line 5)\n  `[ \"$status\" -eq 0 ]' failed\n"
-    }
-  ]
+  "status": "error",
+  "message": "1..1\nnot ok 1 say hello\n# (in test file missing_script.bats, line 5)\n#   `[ \"$status\" -eq 0 ]' failed\n\nThe following warnings were encountered during tests:\nBW01: `run`'s command `bash one_passing.sh` exited with code 127, indicating 'Command not found'. Use run's return code checks, e.g. `run -127`, to fix this message.\n      (from function `run' in file /home/linuxbrew/.linuxbrew/Cellar/bats-core/1.11.0/lib/bats-core/test_functions.bash, line 426,\n       in test file missing_script.bats, line 4)"
 }

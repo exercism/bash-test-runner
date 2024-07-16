@@ -166,7 +166,7 @@ build_report() {
             local error_message=""
 
             for ((j = i + 1; j < ${#output[@]}; j++)); do
-                if [[ ${output[$j]} =~ ^#\ (.*)$ ]]; then
+                if [[ ${output[$j]} =~ ^#\ ?(.*)$ ]]; then
                     error_message+="${BASH_REMATCH[1]}"$'\n'
                 else
                     break

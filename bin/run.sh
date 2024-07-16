@@ -18,7 +18,7 @@
 INTERFACE_VERSION=2
 
 main() {
-    if (($# != 3)) || [[ $1 == '-h' ]]; then
+    if (($# < 3)) || [[ $1 == '-h' ]]; then
         echo "usage: $0 <exercise_slug> <solution_directory> <output_directory>"
         echo ""
         echo "Typically, solution_directory == output_directory"

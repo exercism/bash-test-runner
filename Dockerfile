@@ -1,22 +1,24 @@
-FROM ubuntu:24.04
+# To refresh, copy the Digest from
+# docker image inspect alpine:3.23.4 | jq -r '.[0].Id'
+FROM alpine@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
 
-# Ubuntu 24.04 ships with bash version 5.2
-# https://hub.docker.com/layers/library/ubuntu/24.04/images/sha256-3963c438d67a34318a3672faa6debd1dfff48e5d52de54305988b932c61514ca?context=explore
-# 24.04 provides bats v1.10.0
-# Test runner needs jq.
-# Other commands to add to environment, might be used by students
-#   - bc
-#   - GNU awk (Ubuntu 20.04 ships with mawk)
-# Tools commonly used by students that will already be installed include:
-#   - sed, tr, ...
-
-RUN apt-get update                      && \
-    apt-get install -y bats jq bc gawk  && \
-    apt-get purge --auto-remove -y      && \
-    apt-get clean                       && \
-    rm -rf /var/lib/apt/lists/*
+# bats: the test runner framework
+# bash: the language
+# bc:   used for float arithmetic
+# coreutils: provides GNU version of tools like `date`
+# gawk: used for float arithmetic
+# jq:   used for JSON
+RUN apk add --no-cache bats bash bc coreutils gawk jq
 
 COPY . /opt/test-runner
 WORKDIR /opt/test-runner
 ENV BATS_RUN_SKIPPED=true
 ENTRYPOINT ["/opt/test-runner/bin/run.sh"]
+
+# $ docker build --rm -t exercism/bash-test-runner .
+# $ docker run -it --entrypoint bash exercism/bash-test-runner -c 'for i in awk bash bats bc jq; do "$i" --version | head -n1; done'
+# GNU Awk 5.3.2, API 4.0
+# GNU bash, version 5.3.3(1)-release (x86_64-alpine-linux-musl)
+# Bats 1.13.0
+# bc 1.08.2
+# jq-1.8.1

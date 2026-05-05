@@ -69,7 +69,8 @@ run_tests() {
         [[ -f "$test_file" ]] || test_file="${slug//-/_}_test.sh"
     fi
 
-    perl -i -pe 's/(load bats-extra)\.bash/$1/' "$test_file"
+    contents=$( < "$test_file" )
+    sed 's/(load bats-extra)\.bash/$1/' > "$test_file" <<< "$contents"
 
     echo "Test output:"
 

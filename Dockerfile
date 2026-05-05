@@ -1,5 +1,5 @@
 # To refresh, copy the Digest from
-# docker image inspect alpine:3.23.4 | jq -r '.[0].Id'
+# docker image inspect alpine:3.23.4 | jq -r '.[0].RepoDigests[0]'
 FROM alpine@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
 
 # bats: the test runner framework

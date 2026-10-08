@@ -1,6 +1,6 @@
 # To refresh, copy the Digest from
 # docker image inspect alpine:3.23.4 | jq -r '.[0].RepoDigests[0]'
-FROM alpine@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
+FROM alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 
 # bats: the test runner framework
 # bash: the language
@@ -18,7 +18,7 @@ ENTRYPOINT ["/opt/test-runner/bin/run.sh"]
 # $ docker build --rm -t exercism/bash-test-runner .
 # $ docker run -it --entrypoint bash exercism/bash-test-runner -c 'for i in awk bash bats bc jq; do "$i" --version | head -n1; done'
 # GNU Awk 5.3.2, API 4.0
-# GNU bash, version 5.3.3(1)-release (x86_64-alpine-linux-musl)
+# GNU bash, version 5.3.9(1)-release (x86_64-alpine-linux-musl)
 # Bats 1.13.0
 # bc 1.08.2
-# jq-1.8.1
+# jq-1.8.2

@@ -52,8 +52,8 @@ When you've made modifications to the code that will result in a new "golden" st
 
 ## Linking tests to tasks
 
-The runner implements version 3 of the test runner interface. A test is linked
-to a task of a concept exercise with a bats tag comment above the test:
+The runner implements version 3 of the test runner interface.
+A test is linked to a task of a concept exercise with a bats tag comment above the test:
 
 ```bash
 # bats test_tags=task:1

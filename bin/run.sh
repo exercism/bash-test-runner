@@ -14,8 +14,8 @@
 # then parses that TAP file to produce the JSON file.
 
 # the version of the test-runner interface:
-# https://github.com/exercism/docs/blob/50bcff91e8871f08b9a69b76ccbd45e5a90493dd/building/tooling/test-runners/interface.md
-INTERFACE_VERSION=2
+# https://github.com/exercism/docs/blob/main/building/tooling/test-runners/interface.md
+INTERFACE_VERSION=3
 
 main() {
     if (($# < 3)) || [[ $1 == '-h' ]]; then
@@ -44,6 +44,7 @@ main() {
     local json_result_file="$output_dir/results.json"
 
     local -A test_bodies    # populated in get_test_bodies
+    local -A task_ids       # populated in get_test_bodies
 
     run_tests "$slug" "$solution_dir" "$output_file"
     build_report "$output_file" "$json_result_file"
@@ -87,18 +88,28 @@ run_tests() {
 
 get_test_bodies() {
     local test_file=$1
-    local name line indent
+    local name line indent task_id
     local state="out"
     local body=()
     test_bodies=()
+    task_ids=()
 
     local start_test_re='^@test ['\''"](.+)['\''"] \{[[:blank:]]*$'
+    # function-style tests: `test_name() { # @test`
+    local start_func_re='^([A-Za-z_][A-Za-z0-9_]*)[[:blank:]]*\(\)[[:blank:]]*\{[[:blank:]]*#[[:blank:]]*@test[[:blank:]]*$'
+    # tag comment: `# bats test_tags=task:1,other`
+    local tags_re='^[[:blank:]]*#[[:blank:]]*bats[[:blank:]]+test_tags[[:blank:]]*=(.*)$'
+    local task_re='(^|[[:blank:],])task:([0-9]+)([[:blank:],]|$)'
     local end_test_re='^\}[[:blank:]]*$'
 
     while IFS= read -r line; do
         case "$state" in
             out)
-                if [[ $line =~ $start_test_re ]]; then
+                if [[ $line =~ $tags_re ]]; then
+                    if [[ ${BASH_REMATCH[1]} =~ $task_re ]]; then
+                        task_id=${BASH_REMATCH[2]}
+                    fi
+                elif [[ $line =~ $start_test_re || $line =~ $start_func_re ]]; then
                     name=${BASH_REMATCH[1]}
                     body=()
                     state="in"
@@ -107,6 +118,10 @@ get_test_bodies() {
             in)
                 if [[ $line =~ $end_test_re ]]; then
                     test_bodies["$name"]=$(printf '%s\n' "${body[@]}")
+                    if [[ -n ${task_id:-} ]]; then
+                        task_ids["$name"]=$task_id
+                    fi
+                    unset task_id
                     state="out"
                 elif [[ $line == *BATS_RUN_SKIPPED*skip* ]]; then
                     # skip the skips
@@ -148,9 +163,12 @@ build_report() {
 
     local results
     local status="pass"
-    local test_body
+    local test_body task_id
 
     for ((i = 1; i < ${#output[@]}; i++)); do
+        # skip stray diagnostics, such as "# tags: task:1" after a passing test
+        [[ ${output[$i]} == "#"* ]] && continue
+
         if [[ ${output[$i]} =~ ^(not )?ok\ [0-9]+\ (.*)$ ]]; then
             local failed="${BASH_REMATCH[1]}"
             local test_name="${BASH_REMATCH[2]}"
@@ -160,9 +178,10 @@ build_report() {
         fi
 
         test_body=${test_bodies[$test_name]:-}
+        task_id=${task_ids[$test_name]:-}
 
         if [[ -z $failed ]]; then
-            results+=("$(print_passed_test "$test_name" "$test_body")")
+            results+=("$(print_passed_test "$test_name" "$test_body" "$task_id")")
         else
             status="fail"
 
@@ -170,13 +189,15 @@ build_report() {
 
             for ((j = i + 1; j < ${#output[@]}; j++)); do
                 if [[ ${output[$j]} =~ ^#\ ?(.*)$ ]]; then
-                    error_message+="${BASH_REMATCH[1]}"$'\n'
+                    # bats reports tags as a diagnostic: not part of the error
+                    [[ ${BASH_REMATCH[1]} == "tags:"* ]] ||
+                        error_message+="${BASH_REMATCH[1]}"$'\n'
                 else
                     break
                 fi
             done
 
-            results+=("$(print_failed_test "$test_name" "$error_message" "$test_body")")
+            results+=("$(print_failed_test "$test_name" "$error_message" "$test_body" "$task_id")")
 
             ((i = j - 1))
         fi
@@ -243,7 +264,9 @@ print_failed_test() {
         --arg message "$2" \
         --arg code "$3" \
         --arg status "fail" \
-        '{name: $name, status: $status, test_code: $code, message: $message}'
+        --arg task_id "${4:-}" \
+        '{name: $name, status: $status, test_code: $code, message: $message}
+         + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)'
 }
 
 print_passed_test() {
@@ -252,7 +275,9 @@ print_passed_test() {
         --arg name "$1" \
         --arg code "$2" \
         --arg status "pass" \
-        '{name: $name, status: $status, test_code: $code}'
+        --arg task_id "${3:-}" \
+        '{name: $name, status: $status, test_code: $code}
+         + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)'
 }
 
 main "$@"

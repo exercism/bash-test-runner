@@ -1,0 +1,34 @@
+{
+  "version": 3,
+  "status": "fail",
+  "test-environment": {
+    "bash": "5.3.20(1)-release",
+    "bats": "Bats 1.14.0"
+  },
+  "tests": [
+    {
+      "name": "say_one",
+      "status": "pass",
+      "test_code": "run bash with_tasks.sh one\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"one\" ]",
+      "task_id": 1
+    },
+    {
+      "name": "say_two",
+      "status": "pass",
+      "test_code": "run bash with_tasks.sh two\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"two\" ]",
+      "task_id": 1
+    },
+    {
+      "name": "say_three",
+      "status": "fail",
+      "test_code": "run bash with_tasks.sh three\n[ \"$status\" -eq 0 ]\n[ \"$output\" == \"three\" ]",
+      "message": "(in test file with_tasks.bats, line 24)\n  `[ \"$output\" == \"three\" ]' failed\n",
+      "task_id": 2
+    },
+    {
+      "name": "say_four",
+      "status": "pass",
+      "test_code": "run bash with_tasks.sh two\n[ \"$output\" == \"two\" ]"
+    }
+  ]
+}

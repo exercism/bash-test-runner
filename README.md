@@ -49,3 +49,15 @@ When you've made modifications to the code that will result in a new "golden" st
 [test-runners]: https://github.com/exercism/automated-tests/blob/master/docs/introduction.md
 [golden]: https://ro-che.info/articles/2017-12-04-golden-tests
 [exercism]: https://exercism.io
+
+## Linking tests to tasks
+
+The runner implements version 3 of the test runner interface.
+A test is linked to a task of a concept exercise with a bats tag comment above the test:
+
+```bash
+# bats test_tags=task:1
+test_expected_minutes_in_oven() { # @test
+```
+
+The number is reported as `task_id` for that test in `results.json`.

@@ -161,7 +161,15 @@ build_report() {
 
     echo "Tried to run $test_count tests according to TAP plan."
 
-    local results
+    # `results` is a flat array that holds 5 elements for each test, in order:
+    #   1. the test name
+    #   2. the status, "pass" or "fail"
+    #   3. the test code (the body of the test)
+    #   4. the error message (empty if the test passed)
+    #   5. the task id (empty if the test has no "task:" tag)
+    # So test 1 is results[0..4], test 2 is results[5..9], and so on.
+    # print_report turns each chunk of 5 into one test object.
+    local results=()
     local status="pass"
     local test_body task_id
 
@@ -181,7 +189,7 @@ build_report() {
         task_id=${task_ids[$test_name]:-}
 
         if [[ -z $failed ]]; then
-            results+=("$(print_passed_test "$test_name" "$test_body" "$task_id")")
+            results+=("$test_name" "pass" "$test_body" "" "$task_id")
         else
             status="fail"
 
@@ -197,7 +205,7 @@ build_report() {
                 fi
             done
 
-            results+=("$(print_failed_test "$test_name" "$error_message" "$test_body" "$task_id")")
+            results+=("$test_name" "fail" "$test_body" "$error_message" "$task_id")
 
             ((i = j - 1))
         fi
@@ -230,54 +238,43 @@ error() {
 }
 
 print_report() {
-    # Print complete result JSON, given the overall status and a list of
-    # already JSON-encoded test results.
+    # Print the complete result JSON, given the overall status and the
+    # `results` array from build_report (5 elements per test).
+    #
+    # The elements reach jq through `--args`, so jq sees them as the array
+    # $ARGS.positional, called $fields below. `range(0; $fields | length; 5)`
+    # gives the index of the first element of each test (0, 5, 10, ...). For
+    # each index $i, jq takes the slice $fields[$i:$i + 5] and names its
+    # elements $name, $test_status, $code, $message and $task_id. From those
+    # it builds one test object:
+    #   name, status and test_code always
+    #   message, added only if the test failed
+    #   task_id, added as a number only if it is not empty
+    # The `[ ... ]` around this collects the objects into the "tests" array.
+    #
+    # One jq process builds the whole report. Starting a jq process for each
+    # test cost about 10 ms per test.
     local status=$1
     shift
-    local tests=("$@")
     jq  --null-input \
         --argjson version "$INTERFACE_VERSION" \
-        --argjson tools "$(tool_versions)" \
         --arg status "$status" \
-        --jsonargs \
+        --arg bash "$BASH_VERSION" \
+        --arg bats "$(bats --version)" \
         '{
             version: $version,
             status: $status,
-            "test-environment": $tools,
-            tests: $ARGS.positional
+            "test-environment": {bash: $bash, bats: $bats},
+            tests: [
+                $ARGS.positional as $fields
+                | range(0; $fields | length; 5) as $i
+                | $fields[$i:$i + 5] as [$name, $test_status, $code, $message, $task_id]
+                | {name: $name, status: $test_status, test_code: $code}
+                + (if $test_status == "fail" then {message: $message} else {} end)
+                + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)
+            ]
         }' \
-        "${tests[@]}"
-}
-
-tool_versions() {
-    # print versions of tools in the test environment
-    jq  --null-input \
-        --arg bash "$BASH_VERSION" \
-        --arg bats "$(bats --version)" \
-        '$ARGS.named'
-}
-
-print_failed_test() {
-    # Print result of failed test as JSON.
-    jq  --null-input \
-        --arg name "$1" \
-        --arg message "$2" \
-        --arg code "$3" \
-        --arg status "fail" \
-        --arg task_id "${4:-}" \
-        '{name: $name, status: $status, test_code: $code, message: $message}
-         + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)'
-}
-
-print_passed_test() {
-    # Print result of passed test as JSON.
-    jq  --null-input \
-        --arg name "$1" \
-        --arg code "$2" \
-        --arg status "pass" \
-        --arg task_id "${3:-}" \
-        '{name: $name, status: $status, test_code: $code}
-         + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)'
+        --args "$@"
 }
 
 main "$@"

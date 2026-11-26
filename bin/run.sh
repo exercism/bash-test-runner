@@ -181,7 +181,7 @@ build_report() {
         task_id=${task_ids[$test_name]:-}
 
         if [[ -z $failed ]]; then
-            results+=("$(print_passed_test "$test_name" "$test_body" "$task_id")")
+            results+=("$test_name" "pass" "$test_body" "" "$task_id")
         else
             status="fail"
 
@@ -197,7 +197,7 @@ build_report() {
                 fi
             done
 
-            results+=("$(print_failed_test "$test_name" "$error_message" "$test_body" "$task_id")")
+            results+=("$test_name" "fail" "$test_body" "$error_message" "$task_id")
 
             ((i = j - 1))
         fi
@@ -230,54 +230,31 @@ error() {
 }
 
 print_report() {
-    # Print complete result JSON, given the overall status and a list of
-    # already JSON-encoded test results.
+    # Print the complete result JSON, given the overall status and a flat
+    # list of five fields per test: name, status, code, message and task id.
+    # One jq process builds the whole report. Starting a jq process for each
+    # test cost about 10 ms per test.
     local status=$1
     shift
-    local tests=("$@")
     jq  --null-input \
         --argjson version "$INTERFACE_VERSION" \
-        --argjson tools "$(tool_versions)" \
         --arg status "$status" \
-        --jsonargs \
+        --arg bash "$BASH_VERSION" \
+        --arg bats "$(bats --version)" \
         '{
             version: $version,
             status: $status,
-            "test-environment": $tools,
-            tests: $ARGS.positional
+            "test-environment": {bash: $bash, bats: $bats},
+            tests: [
+                $ARGS.positional as $fields
+                | range(0; $fields | length; 5) as $i
+                | $fields[$i:$i + 5] as [$name, $test_status, $code, $message, $task_id]
+                | {name: $name, status: $test_status, test_code: $code}
+                + (if $test_status == "fail" then {message: $message} else {} end)
+                + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)
+            ]
         }' \
-        "${tests[@]}"
-}
-
-tool_versions() {
-    # print versions of tools in the test environment
-    jq  --null-input \
-        --arg bash "$BASH_VERSION" \
-        --arg bats "$(bats --version)" \
-        '$ARGS.named'
-}
-
-print_failed_test() {
-    # Print result of failed test as JSON.
-    jq  --null-input \
-        --arg name "$1" \
-        --arg message "$2" \
-        --arg code "$3" \
-        --arg status "fail" \
-        --arg task_id "${4:-}" \
-        '{name: $name, status: $status, test_code: $code, message: $message}
-         + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)'
-}
-
-print_passed_test() {
-    # Print result of passed test as JSON.
-    jq  --null-input \
-        --arg name "$1" \
-        --arg code "$2" \
-        --arg status "pass" \
-        --arg task_id "${3:-}" \
-        '{name: $name, status: $status, test_code: $code}
-         + (if $task_id == "" then {} else {task_id: ($task_id | tonumber)} end)'
+        --args "$@"
 }
 
 main "$@"

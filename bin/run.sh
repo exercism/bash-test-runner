@@ -161,7 +161,15 @@ build_report() {
 
     echo "Tried to run $test_count tests according to TAP plan."
 
-    local results
+    # `results` is a flat array that holds 5 elements for each test, in order:
+    #   1. the test name
+    #   2. the status, "pass" or "fail"
+    #   3. the test code (the body of the test)
+    #   4. the error message (empty if the test passed)
+    #   5. the task id (empty if the test has no "task:" tag)
+    # So test 1 is results[0..4], test 2 is results[5..9], and so on.
+    # print_report turns each chunk of 5 into one test object.
+    local results=()
     local status="pass"
     local test_body task_id
 
@@ -230,8 +238,20 @@ error() {
 }
 
 print_report() {
-    # Print the complete result JSON, given the overall status and a flat
-    # list of five fields per test: name, status, code, message and task id.
+    # Print the complete result JSON, given the overall status and the
+    # `results` array from build_report (5 elements per test).
+    #
+    # The elements reach jq through `--args`, so jq sees them as the array
+    # $ARGS.positional, called $fields below. `range(0; $fields | length; 5)`
+    # gives the index of the first element of each test (0, 5, 10, ...). For
+    # each index $i, jq takes the slice $fields[$i:$i + 5] and names its
+    # elements $name, $test_status, $code, $message and $task_id. From those
+    # it builds one test object:
+    #   name, status and test_code always
+    #   message, added only if the test failed
+    #   task_id, added as a number only if it is not empty
+    # The `[ ... ]` around this collects the objects into the "tests" array.
+    #
     # One jq process builds the whole report. Starting a jq process for each
     # test cost about 10 ms per test.
     local status=$1

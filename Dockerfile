@@ -5,7 +5,7 @@
 #
 # To refresh, copy the Digest from
 # docker image inspect debian:trixie-slim | jq -r '.[0].RepoDigests[0]'
-FROM debian:trixie-slim@sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0
+FROM debian:trixie-slim@sha256:109e2c65005bf160609e4ba6acf7783752f8502ad218e298253428690b9eaa4b
 
 # bats: the test runner framework
 # bc:   used for float arithmetic
